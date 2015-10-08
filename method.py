@@ -134,7 +134,7 @@ def generate_matrix(with_rating=False):
     # ItemCF.item_similarity__log_likelihood(train, norm=False)  # without rating
     # ItemCF.item_similarity__log_likelihood(train, norm=True)  # without rating
     # SlopeOne.item_deviation(train)  # with rating
-    # LFM.factorization(train, bias=True, svd=False, step=100, gamma=0.01, slow_rate=0.99, Lambda=0.1)  # with rating
+    # LFM.factorization(train, bias=True, svd=False, step=50, gamma=0.04, slow_rate=0.93, Lambda=0.1, k=15)  # with rating
     # LFM.factorization(train, bias=False, svd=True, step=50, gamma=0.04, slow_rate=0.93, Lambda=0.1, k=15)  # with rating
     # LFM.factorization(train, bias=True, svd=True, step=25, gamma=0.04, slow_rate=0.93, Lambda=0.1, k=15)  # with rating
     # LFM.factorization(train, bias=True, svd=True, step=25, gamma=0.02, slow_rate=0.9, Lambda=0.01, k=5,

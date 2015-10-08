@@ -76,8 +76,8 @@ def test1m_with_rating():
 if __name__ == '__main__':
     st = datetime.datetime.now()
     for _ in xrange(5):
-        # test100k()
-        test100k_with_rating()
+        test100k()
+        # test100k_with_rating()
         # test1m()
         # test1m_with_rating()
     ed = datetime.datetime.now()
