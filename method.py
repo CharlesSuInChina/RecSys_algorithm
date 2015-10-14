@@ -110,7 +110,7 @@ def generate_data_1m_with_rating(m, k, seed=0):
             train[user][item] = rating
 
 
-def generate_matrix(with_rating=False):
+def generate_matrix(with_rating=True):
     """
     :param with_rating: 训练集是否包括rating，True则rating范围为1~5，否则为0或1（只对部分算法有效）
     """
@@ -134,10 +134,11 @@ def generate_matrix(with_rating=False):
     # ItemCF.item_similarity__log_likelihood(train, norm=False)  # without rating
     # ItemCF.item_similarity__log_likelihood(train, norm=True)  # without rating
     # SlopeOne.item_deviation(train)  # with rating
-    # LFM.factorization(train, bias=True, svd=False, step=50, gamma=0.04, slow_rate=0.93, Lambda=0.1, k=15)  # with rating
-    # LFM.factorization(train, bias=False, svd=True, step=50, gamma=0.04, slow_rate=0.93, Lambda=0.1, k=15)  # with rating
-    # LFM.factorization(train, bias=True, svd=True, step=25, gamma=0.04, slow_rate=0.93, Lambda=0.1, k=15)  # with rating
-    # LFM.factorization(train, bias=True, svd=True, step=25, gamma=0.02, slow_rate=0.9, Lambda=0.01, k=5,
+    # LFM.factorization(train, bias=True, svd=False, svd_pp=False, steps=50)  # with rating
+    # LFM.factorization(train, bias=False, svd=True, svd_pp=False, steps=50)  # with rating
+    # LFM.factorization(train, bias=True, svd=True, svd_pp=False, steps=25)  # with rating
+    # LFM.factorization(train, bias=True, svd=True, svd_pp=True, steps=10, gamma=0.03)  # with rating
+    # LFM.factorization(train, bias=True, svd=True, svd_pp=False, steps=25, gamma=0.02, slow_rate=0.9, Lambda=0.01,
     #                   with_rating=with_rating)  # without rating
 
 

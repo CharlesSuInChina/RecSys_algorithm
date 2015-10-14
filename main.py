@@ -13,7 +13,7 @@ def test100k():
     ans = [0, 0, 0, 0]
     for k in xrange(1, 6):
         method.generate_data_100k(k)
-        method.generate_matrix()
+        method.generate_matrix(with_rating=False)
         b = method.evaluate()
         for x in xrange(0, 4):
             ans[x] += b[x]
@@ -45,7 +45,7 @@ def test1m():
     ans = [0, 0, 0, 0]
     for k in xrange(0, 8):
         method.generate_data_1m(8, k)
-        method.generate_matrix()
+        method.generate_matrix(with_rating=False)
         b = method.evaluate()
         for x in xrange(0, 4):
             ans[x] += b[x]
@@ -76,8 +76,8 @@ def test1m_with_rating():
 if __name__ == '__main__':
     st = datetime.datetime.now()
     for _ in xrange(5):
-        test100k()
-        # test100k_with_rating()
+        # test100k()
+        test100k_with_rating()
         # test1m()
         # test1m_with_rating()
     ed = datetime.datetime.now()
