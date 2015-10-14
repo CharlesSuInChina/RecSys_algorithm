@@ -140,6 +140,8 @@ def generate_matrix(with_rating=True):
     # LFM.factorization(train, bias=True, svd=True, svd_pp=True, steps=10, gamma=0.03)  # with rating
     # LFM.factorization(train, bias=True, svd=True, svd_pp=False, steps=25, gamma=0.02, slow_rate=0.9, Lambda=0.01,
     #                   with_rating=with_rating)  # without rating
+    # LFM.factorization(train, bias=True, svd=True, svd_pp=True, steps=50, gamma=0.03, slow_rate=0.93, Lambda=0.01,
+    #                   with_rating=with_rating)  # without rating
 
 
 def get_recommendation(user):
