@@ -7,13 +7,9 @@ import math
 import random
 
 import ItemCF
+import LFM
 import SlopeOne
 import UserCF
-
-try:
-    import LFM
-except:
-    pass
 
 
 def generate_data_100k(k):
@@ -23,12 +19,12 @@ def generate_data_100k(k):
     global train, test
     train = {}
     test = {}
-    for line in open("ml-100k/u%s.base" % k, "r"):
+    for line in open("ml-100k/u%s.base" % k, "rU"):
         user, item, rating, _ = line.split('\t')
         user, item, rating = int(user), int(item), int(rating)
         train.setdefault(user, {})
         train[user][item] = 1
-    for line in open("ml-100k/u%s.test" % k, "r"):
+    for line in open("ml-100k/u%s.test" % k, "rU"):
         user, item, rating, _ = line.split('\t')
         user, item, rating = int(user), int(item), int(rating)
         test.setdefault(user, {})
@@ -46,12 +42,12 @@ def generate_data_100k_with_rating(k):
     global train, test
     train = {}
     test = {}
-    for line in open("ml-100k/u%s.base" % k, "r"):
+    for line in open("ml-100k/u%s.base" % k, "rU"):
         user, item, rating, _ = line.split('\t')
         user, item, rating = int(user), int(item), int(rating)
         train.setdefault(user, {})
         train[user][item] = rating
-    for line in open("ml-100k/u%s.test" % k, "r"):
+    for line in open("ml-100k/u%s.test" % k, "rU"):
         user, item, rating, _ = line.split('\t')
         user, item, rating = int(user), int(item), int(rating)
         test.setdefault(user, {})
@@ -71,7 +67,7 @@ def generate_data_1m(m, k, seed=0):
     global train, test
     train = {}
     test = {}
-    for line in open("ml-1m/ratings.dat", "r"):
+    for line in open("ml-1m/ratings.dat", "rU"):
         user, item, rating, _ = line.split('::')
         user, item, rating = int(user), int(item), int(rating)
         if random.randint(0, m) == k:
@@ -99,7 +95,7 @@ def generate_data_1m_with_rating(m, k, seed=0):
     global train, test
     train = {}
     test = {}
-    for line in open("ml-1m/ratings.dat", "r"):
+    for line in open("ml-1m/ratings.dat", "rU"):
         user, item, rating, _ = line.split('::')
         user, item, rating = int(user), int(item), int(rating)
         if random.randint(0, m) == k:
@@ -139,9 +135,9 @@ def generate_matrix(with_rating=True):
     # LFM.factorization(train, bias=True, svd=True, svd_pp=False, steps=25)  # with rating
     # LFM.factorization(train, bias=True, svd=True, svd_pp=True, steps=10, gamma=0.03)  # with rating
     # LFM.factorization(train, bias=True, svd=True, svd_pp=False, steps=25, gamma=0.02, slow_rate=0.9, Lambda=0.01,
-    #                   with_rating=with_rating)  # without rating
-    # LFM.factorization(train, bias=True, svd=True, svd_pp=True, steps=50, gamma=0.03, slow_rate=0.93, Lambda=0.01,
-    #                   with_rating=with_rating)  # without rating
+    #                   ratio=7)  # without rating
+    # LFM.factorization(train, bias=True, svd=True, svd_pp=True, steps=50, gamma=0.06, slow_rate=0.95, Lambda=0.01,
+    #                   ratio=7)  # without rating
 
 
 def get_recommendation(user):

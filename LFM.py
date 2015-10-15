@@ -10,7 +10,7 @@ import numpy
 
 
 def factorization(train, bias=True, svd=True, svd_pp=False, steps=25, gamma=0.04, slow_rate=0.93, Lambda=0.1, k=15,
-                  seed=0, with_rating=True):
+                  ratio=None, seed=0):
     """
     建立隐语义模型，并使用随机梯度下降优化
     :param train: 训练集
@@ -62,7 +62,7 @@ def factorization(train, bias=True, svd=True, svd_pp=False, steps=25, gamma=0.04
         rmse_sum = 0
         mae_sum = 0
         for user, items in train.iteritems():
-            samples = items if with_rating else __random_negative_sample(items)
+            samples = items if not ratio else __random_negative_sample(items, ratio)
             s = numpy.zeros((_k, 1))
             if _svd_pp:
                 _z[user] = numpy.zeros((_k, 1))
@@ -87,7 +87,7 @@ def factorization(train, bias=True, svd=True, svd_pp=False, steps=25, gamma=0.04
         print "step: %s, rmse: %s, mae: %s" % (step + 1, numpy.sqrt(rmse_sum / _tot), mae_sum / _tot)
 
 
-def __random_negative_sample(items, ratio=7):
+def __random_negative_sample(items, ratio=1):
     """
     生成负样本
     :param items: 正样本
@@ -119,7 +119,7 @@ def __random_negative_sample(items, ratio=7):
     return ret
 
 
-# def __random_negative_sample_new(items, ratio=10):
+# def __random_negative_sample_new(items, ratio=1):
 #     """
 #     生成负样本
 #     :param items: 正样本
