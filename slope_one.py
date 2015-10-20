@@ -3,15 +3,17 @@
 from __future__ import division
 
 
-def item_deviation(train):
+def item_deviation(train, implicit=False):
     """
     计算物品i和j的差值
     :param train: 训练集
+    :param implicit: 训练集类型
     """
-    deviation = {}
-    global _freq
+    global _freq, _user_items
+    _user_items = train
     _freq = {}
-    for items in train.itervalues():
+    deviation = {}
+    for items in _user_items.itervalues():
         for i, ri in items.iteritems():
             _freq.setdefault(i, {})
             deviation.setdefault(i, {})
@@ -30,16 +32,15 @@ def item_deviation(train):
             _w[i][j] = dij / _freq[i][j]
 
 
-def recommend_with_rating(user, train):
+def recommend_explicit(user):
     """
     用户u对物品i的评分预测
     :param user: 用户
-    :param train: 训练集
     :return: 推荐列表
     """
     rank = {}
     freq_sum = {}
-    ru = train[user]
+    ru = _user_items[user]
     for j, ruj in ru.iteritems():
         for i, wji in _w[j].iteritems():
             if i in ru:

@@ -3,82 +3,103 @@
 from __future__ import absolute_import
 from __future__ import division
 
-import datetime
-
 import method
 
 
-def test100k():
-    start = datetime.datetime.now()
-    ans = [0, 0, 0, 0]
-    for k in xrange(1, 6):
-        method.generate_data_100k(k)
-        method.generate_matrix(with_rating=False)
-        b = method.evaluate()
-        for x in xrange(0, 4):
+def test100k_explicit():
+    test_count = 5
+    evaluation_base = 2
+    ans = [0] * evaluation_base
+    for k in xrange(1, test_count + 1):
+        method.generate_data_100k_explicit(k)
+        method.generate_matrix(implicit=False)
+        b = method.evaluate_explicit()
+        for x in xrange(evaluation_base):
             ans[x] += b[x]
-    for x in xrange(0, 4):
-        ans[x] /= 5
+    for x in xrange(evaluation_base):
+        ans[x] /= test_count
     print ans
-    end = datetime.datetime.now()
-    print datetime.timedelta(seconds=(end - start).total_seconds() / 5)
 
 
-def test100k_with_rating():
-    start = datetime.datetime.now()
-    ans = [0, 0]
-    for k in xrange(1, 6):
-        method.generate_data_100k_with_rating(k)
-        method.generate_matrix(with_rating=True)
-        b = method.evaluate_with_rating()
-        for x in xrange(0, 2):
+def test100k_implicit():
+    test_count = 5
+    evaluation_base = 4
+    ans = [0] * evaluation_base
+    for k in xrange(1, test_count + 1):
+        method.generate_data_100k_implicit(k)
+        method.generate_matrix(implicit=True)
+        b = method.evaluate_implicit()
+        for x in xrange(evaluation_base):
             ans[x] += b[x]
-    for x in xrange(0, 2):
-        ans[x] /= 5
+    for x in xrange(evaluation_base):
+        ans[x] /= test_count
     print ans
-    end = datetime.datetime.now()
-    print datetime.timedelta(seconds=(end - start).total_seconds() / 5)
 
 
-def test1m():
-    start = datetime.datetime.now()
-    ans = [0, 0, 0, 0]
-    for k in xrange(0, 8):
-        method.generate_data_1m(8, k)
-        method.generate_matrix(with_rating=False)
-        b = method.evaluate()
-        for x in xrange(0, 4):
+def test1m_explicit():
+    test_count = 8
+    evaluation_base = 2
+    ans = [0] * evaluation_base
+    for k in xrange(test_count):
+        method.generate_data_1m_explicit(test_count, k)
+        method.generate_matrix(implicit=False)
+        b = method.evaluate_explicit()
+        for x in xrange(evaluation_base):
             ans[x] += b[x]
-        print datetime.datetime.now() - start
-    for x in xrange(0, 4):
-        ans[x] /= 8
+    for x in xrange(evaluation_base):
+        ans[x] /= test_count
     print ans
-    end = datetime.datetime.now()
-    print datetime.timedelta(seconds=(end - start).total_seconds() / 8)
 
 
-def test1m_with_rating():
-    start = datetime.datetime.now()
-    ans = [0, 0]
-    for k in xrange(1, 6):
-        method.generate_data_1m_with_rating(8, k)
-        method.generate_matrix(with_rating=True)
-        b = method.evaluate_with_rating()
-        for x in xrange(0, 2):
+def test1m_implicit():
+    test_count = 8
+    evaluation_base = 4
+    ans = [0] * evaluation_base
+    for k in xrange(test_count):
+        method.generate_data_1m_implicit(test_count, k)
+        method.generate_matrix(implicit=True)
+        b = method.evaluate_implicit()
+        for x in xrange(evaluation_base):
             ans[x] += b[x]
-    for x in xrange(0, 2):
-        ans[x] /= 8
+    for x in xrange(evaluation_base):
+        ans[x] /= test_count
     print ans
-    end = datetime.datetime.now()
-    print datetime.timedelta(seconds=(end - start).total_seconds() / 8)
+
+
+def test_latest_small_explicit():
+    test_count = 8
+    evaluation_base = 2
+    ans = [0] * evaluation_base
+    for k in xrange(test_count):
+        method.generate_data_latest_small_explicit(test_count, k)
+        method.generate_matrix(implicit=False)
+        b = method.evaluate_explicit()
+        for x in xrange(evaluation_base):
+            ans[x] += b[x]
+    for x in xrange(evaluation_base):
+        ans[x] /= test_count
+    print ans
+
+
+def test_latest_small_implicit():
+    test_count = 8
+    evaluation_base = 4
+    ans = [0] * evaluation_base
+    for k in xrange(test_count):
+        method.generate_data_latest_small_implicit(test_count, k)
+        method.generate_matrix(implicit=True)
+        b = method.evaluate_implicit()
+        for x in xrange(evaluation_base):
+            ans[x] += b[x]
+    for x in xrange(evaluation_base):
+        ans[x] /= test_count
+    print ans
 
 
 if __name__ == '__main__':
-    st = datetime.datetime.now()
-    for _ in xrange(5):
-        # test100k()
-        test100k_with_rating()
-        # test1m()
-        # test1m_with_rating()
-    ed = datetime.datetime.now()
-    print datetime.timedelta(seconds=(ed - st).total_seconds() / 25)
+    test100k_explicit()
+    # test100k_implicit()
+    # test1m_explicit()
+    # test1m_implicit()
+    # test_latest_small_explicit()
+    # test_latest_small_implicit()

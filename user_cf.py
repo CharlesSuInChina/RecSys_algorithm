@@ -7,24 +7,66 @@ import math
 import operator
 
 
-def user_similarity_jaccard(train, iif=False):
+def __pre_treat(train, implicit):
+    """
+    :param train: 训练集
+    :param implicit: 训练集类型
+    """
+    global _user_items, _item_users, _avr
+    _user_items = train
+    _item_users = {}
+    _avr = {}
+    for user, items in _user_items.iteritems():
+        for item, rating in items.iteritems():
+            _item_users.setdefault(item, {})
+            _item_users[item][user] = rating
+        if not implicit:
+            _avr[user] = sum(items.itervalues()) / len(items)
+
+
+def user_similarity_cosine(train, iif=False, implicit=False):
+    """
+    通过余弦相似度计算u和v的兴趣相似度
+    :param train: 训练集
+    :param iif: 是否惩罚热门物品
+    :param implicit: 训练集类型
+    """
+    __pre_treat(train, implicit)
+    c = {}
+    n = {}
+    for users in _item_users.itervalues():
+        iif_value = math.log(1 + len(users))
+        for u, ru in users.iteritems():
+            n.setdefault(u, 0)
+            n[u] += ru ** 2
+            c.setdefault(u, {})
+            for v, rv in users.iteritems():
+                if u == v:
+                    continue
+                c[u].setdefault(v, 0)
+                c[u][v] += ru * rv if not iif else ru * rv / iif_value
+    global _w
+    _w = {}
+    for u, related_users in c.iteritems():
+        _w[u] = []
+        for v, cuv in related_users.iteritems():
+            _w[u].append([v, cuv / math.sqrt(n[u] * n[v])])
+        if implicit:
+            _w[u].sort(key=operator.itemgetter(1), reverse=True)
+
+
+def user_similarity_jaccard(train, iif=False, implicit=False):
     """
     通过Jaccard相似度计算u和v的兴趣相似度
     :param train: 训练集
     :param iif: 是否惩罚热门物品
+    :param implicit: 训练集类型
     """
-    global _avr
-    _avr = {}
-    item_users = {}
-    for user, items in train.iteritems():
-        _avr[user] = 0  # Jarccard相似度不需要计算偏移
-        for item, rating in items.iteritems():
-            item_users.setdefault(item, {})
-            item_users[item][user] = rating
+    __pre_treat(train, implicit)
     c = {}
     n = {}
-    for users in item_users.itervalues():
-        user_len = len(users)
+    for users in _item_users.itervalues():
+        iif_value = math.log(1 + len(users))
         for u, ru in users.iteritems():
             n.setdefault(u, 0)
             n[u] += ru ** 2
@@ -33,104 +75,29 @@ def user_similarity_jaccard(train, iif=False):
                 if u == v:
                     continue
                 c[u].setdefault(v, 0)
-                c[u][v] += ru * rv if not iif else ru * rv / math.log(1 + user_len)
+                c[u][v] += ru * rv if not iif else ru * rv / iif_value
     global _w
     _w = {}
     for u, related_users in c.iteritems():
-        _w[u] = {}
+        _w[u] = []
         for v, cuv in related_users.iteritems():
-            _w[u][v] = cuv / (n[u] + n[v] - cuv)
+            _w[u].append([v, cuv / (n[u] + n[v] - cuv)])
+        if implicit:
+            _w[u].sort(key=operator.itemgetter(1), reverse=True)
 
 
-def user_similarity_cosine(train, iif=False):
-    """
-    通过余弦相似度计算u和v的兴趣相似度
-    :param train: 训练集
-    :param iif: 是否惩罚热门物品
-    """
-    global _avr
-    _avr = {}
-    item_users = {}
-    for user, items in train.iteritems():
-        _avr[user] = 0  # 余弦相似度不需要计算偏移
-        for item, rating in items.iteritems():
-            item_users.setdefault(item, {})
-            item_users[item][user] = rating
-    c = {}
-    n = {}
-    for users in item_users.itervalues():
-        user_len = len(users)
-        for u, ru in users.iteritems():
-            n.setdefault(u, 0)
-            n[u] += ru ** 2
-            c.setdefault(u, {})
-            for v, rv in users.iteritems():
-                if u == v:
-                    continue
-                c[u].setdefault(v, 0)
-                c[u][v] += ru * rv if not iif else ru * rv / math.log(1 + user_len)
-    global _w
-    _w = {}
-    for u, related_users in c.iteritems():
-        _w[u] = {}
-        for v, cuv in related_users.iteritems():
-            _w[u][v] = cuv / math.sqrt(n[u] * n[v])
-
-
-def user_similarity_adjusted_cosine(train, iif=False):
-    """
-    通过余弦相似度计算u和v的兴趣相似度
-    :param train: 训练集
-    :param iif: 是否惩罚热门物品
-    """
-    global _avr
-    _avr = {}
-    item_users = {}
-    for user, items in train.iteritems():
-        _avr[user] = sum(items.itervalues()) / len(items)
-        for item, rating in items.iteritems():
-            item_users.setdefault(item, {})
-            item_users[item][user] = rating
-    c = {}
-    n = {}
-    for users in item_users.itervalues():
-        user_len = len(users)
-        for u, ru in users.iteritems():
-            n.setdefault(u, 0)
-            n[u] += (ru - _avr[u]) ** 2
-            c.setdefault(u, {})
-            for v, rv in users.iteritems():
-                if u == v:
-                    continue
-                c[u].setdefault(v, 0)
-                c[u][v] += (ru - _avr[u]) * (rv - _avr[v]) if not iif else (ru - _avr[u]) * (rv - _avr[v]) / math.log(
-                    1 + user_len)
-    global _w
-    _w = {}
-    for u, related_users in c.iteritems():
-        _w[u] = {}
-        for v, cuv in related_users.iteritems():
-            _w[u][v] = cuv / math.sqrt(n[u] * n[v]) if n[u] * n[v] else 0
-
-
-def user_similarity_pearson(train, iif=False):
+def user_similarity_pearson(train, iif=False, implicit=False):
     """
     通过皮尔逊相关系数计算u和v的兴趣相似度
     :param train: 训练集
     :param iif: 是否惩罚热门物品
+    :param implicit: 训练集类型
     """
-    global _avr
-    _avr = {}
-    item_users = {}
-    for user, items in train.iteritems():
-        _avr[user] = sum(items.itervalues()) / len(items)
-        for item, rating in items.iteritems():
-            item_users.setdefault(item, {})
-            item_users[item][user] = rating
+    __pre_treat(train, implicit)
     avr_x = {}
     avr_y = {}
     tot = {}
-    for users in item_users.itervalues():
+    for users in _item_users.itervalues():
         for u, ru in users.iteritems():
             avr_x.setdefault(u, {})
             avr_y.setdefault(u, {})
@@ -151,8 +118,8 @@ def user_similarity_pearson(train, iif=False):
     c = {}
     x = {}
     y = {}
-    for users in item_users.itervalues():
-        user_len = len(users)
+    for users in _item_users.itervalues():
+        iif_value = math.log(1 + len(users))
         for u, ru in users.iteritems():
             c.setdefault(u, {})
             x.setdefault(u, {})
@@ -162,7 +129,7 @@ def user_similarity_pearson(train, iif=False):
                     continue
                 c[u].setdefault(v, 0)
                 c[u][v] += (ru - avr_x[u][v]) * (rv - avr_y[u][v]) if not iif else (ru - avr_x[u][v]) * (
-                    rv - avr_y[u][v]) / math.log(1 + user_len)
+                    rv - avr_y[u][v]) / iif_value
                 x[u].setdefault(v, 0)
                 x[u][v] += (ru - avr_x[u][v]) ** 2
                 y[u].setdefault(v, 0)
@@ -170,24 +137,54 @@ def user_similarity_pearson(train, iif=False):
     global _w
     _w = {}
     for u, related_users in c.iteritems():
-        _w[u] = {}
+        _w[u] = []
         for v, cuv in related_users.iteritems():
-            _w[u][v] = cuv / math.sqrt(x[u][v] * y[u][v]) if x[u][v] * y[u][v] else 0
+            _w[u].append([v, cuv / math.sqrt(x[u][v] * y[u][v]) if x[u][v] * y[u][v] else 0])
+        if implicit:
+            _w[u].sort(key=operator.itemgetter(1), reverse=True)
 
 
-def user_similarity_log_likelihood(train):
+def user_similarity_adjusted_cosine(train, iif=False, implicit=False):
+    """
+    通过余弦相似度计算u和v的兴趣相似度
+    :param train: 训练集
+    :param iif: 是否惩罚热门物品
+    :param implicit: 训练集类型
+    """
+    __pre_treat(train, implicit)
+    c = {}
+    n = {}
+    for users in _item_users.itervalues():
+        iif_value = math.log(1 + len(users))
+        for u, ru in users.iteritems():
+            n.setdefault(u, 0)
+            n[u] += (ru - _avr[u]) ** 2
+            c.setdefault(u, {})
+            for v, rv in users.iteritems():
+                if u == v:
+                    continue
+                c[u].setdefault(v, 0)
+                c[u][v] += (ru - _avr[u]) * (rv - _avr[v]) if not iif else (ru - _avr[u]) * (rv - _avr[v]) / iif_value
+    global _w
+    _w = {}
+    for u, related_users in c.iteritems():
+        _w[u] = []
+        for v, cuv in related_users.iteritems():
+            _w[u].append([v, cuv / math.sqrt(n[u] * n[v]) if n[u] * n[v] else 0])
+        if implicit:
+            _w[u].sort(key=operator.itemgetter(1), reverse=True)
+
+
+def user_similarity_log_likelihood(train, implicit=True):
     """
     通过对数似然比计算u和v的兴趣相似度
     :param train: 训练集
+    :param implicit: 训练集类型
     """
-    item_users = {}
-    for user, items in train.iteritems():
-        for item, rating in items.iteritems():
-            item_users.setdefault(item, {})
-            item_users[item][user] = rating
+    __pre_treat(train, implicit)
     c = {}
     n = {}
-    for users in item_users.itervalues():
+    for users in _item_users.itervalues():
         for u, ru in users.iteritems():
             n.setdefault(u, 0)
             n[u] += ru ** 2
@@ -199,11 +196,13 @@ def user_similarity_log_likelihood(train):
                 c[u][v] += ru * rv
     global _w
     _w = {}
-    item_len = len(item_users)
+    item_cnt = len(_item_users)
     for u, related_users in c.iteritems():
-        _w[u] = {}
+        _w[u] = []
         for v, cuv in related_users.iteritems():
-            _w[u][v] = __calc_log_likelihood(cuv, n[u] - cuv, n[v] - cuv, item_len - n[u] - n[v] + cuv)
+            _w[u].append([v, __calc_log_likelihood(cuv, n[u] - cuv, n[v] - cuv, item_cnt - n[u] - n[v] + cuv)])
+        if implicit:
+            _w[u].sort(key=operator.itemgetter(1), reverse=True)
 
 
 def __calc_log_likelihood(num_both, num_x, num_y, num_none):
@@ -234,38 +233,17 @@ def __calc_log_likelihood(num_both, num_x, num_y, num_none):
     return 2 * (r2 - r1)
 
 
-def recommend(user, train, n, k):
-    """
-    用户u对物品i评分的可能性预测
-    :param user: 用户
-    :param train: 训练集
-    :param n: 为用户推荐n个物品
-    :param k: 取和用户u兴趣最接近的k个用户
-    :return: 推荐列表
-    """
-    rank = {}
-    ru = train[user]
-    for v, wuv in heapq.nlargest(k, _w[user].iteritems(), key=operator.itemgetter(1)):
-        for i, rvi in train[v].iteritems():
-            if i in ru:
-                continue
-            rank.setdefault(i, 0)
-            rank[i] += wuv * rvi
-    return heapq.nlargest(n, rank.iteritems(), key=operator.itemgetter(1))
-
-
-def recommend_with_rating(user, train):
+def recommend_explicit(user):
     """
     用户u对物品i的评分预测
     :param user: 用户
-    :param train: 训练集
     :return: 推荐列表
     """
     rank = {}
     w_sum = {}
-    ru = train[user]
-    for v, wuv in _w[user].iteritems():
-        for i, rvi in train[v].iteritems():
+    ru = _user_items[user]
+    for v, wuv in _w[user]:
+        for i, rvi in _user_items[v].iteritems():
             if i in ru:
                 continue
             rank.setdefault(i, 0)
@@ -277,3 +255,27 @@ def recommend_with_rating(user, train):
             rank[item] /= w_sum[item]
         rank[item] += _avr[user]
     return rank.iteritems()
+
+
+def recommend_implicit(user, n, k):
+    """
+    用户u对物品i评分的可能性预测
+    :param user: 用户
+    :param n: 为用户推荐n个物品
+    :param k: 取和用户u兴趣最接近的k个用户
+    :return: 推荐列表
+    """
+    cnt = {}
+    rank = {}
+    ru = _user_items[user]
+    for v, wuv in _w[user]:
+        for i, rvi in _user_items[v].iteritems():
+            if i in ru:
+                continue
+            cnt.setdefault(i, 0)
+            if cnt[i] == k:
+                continue
+            cnt[i] += 1
+            rank.setdefault(i, 0)
+            rank[i] += wuv * rvi
+    return heapq.nlargest(n, rank.iteritems(), key=operator.itemgetter(1))

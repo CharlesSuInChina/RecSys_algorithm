@@ -22,6 +22,8 @@ def factorization(train, bias=True, svd=True, svd_pp=False, steps=25, gamma=0.04
     :param Lambda: 正则化参数
     :param k: 奇异值分解向量长度
     """
+    global _user_items
+    _user_items = train
     numpy.random.seed(seed)
     global _bias, _svd, _svd_pp, _k
     _bias = bias
@@ -39,7 +41,7 @@ def factorization(train, bias=True, svd=True, svd_pp=False, steps=25, gamma=0.04
     _avr = 0
     _tot = 0
     y = {}
-    for user, items in train.iteritems():
+    for user, items in _user_items.iteritems():
         if _bias:
             _bu.setdefault(user, 0)
         if _svd:
@@ -61,7 +63,7 @@ def factorization(train, bias=True, svd=True, svd_pp=False, steps=25, gamma=0.04
     for step in xrange(steps):
         rmse_sum = 0
         mae_sum = 0
-        for user, items in train.iteritems():
+        for user, items in _user_items.iteritems():
             samples = items if not ratio else __random_negative_sample(items, ratio)
             s = numpy.zeros((_k, 1))
             if _svd_pp:
@@ -179,34 +181,32 @@ def __predict(user, item):
     return rui
 
 
-def recommend(user, train, n):
+def recommend_explicit(user):
     """
     用户u对物品i的评分预测
     :param user: 用户
-    :param train: 训练集
-    :param n: 为用户推荐n个物品
     :return: 推荐列表
     """
     rank = {}
-    ru = train[user]
-    for item in _movie_set:
-        if item in ru:
-            continue
-        rank[item] = __predict(user, item)
-    return heapq.nlargest(n, rank.iteritems(), key=operator.itemgetter(1))
-
-
-def recommend_with_rating(user, train):
-    """
-    用户u对物品i的评分预测
-    :param user: 用户
-    :param train: 训练集
-    :return: 推荐列表
-    """
-    rank = {}
-    ru = train[user]
+    ru = _user_items[user]
     for item in _movie_set:
         if item in ru:
             continue
         rank[item] = __predict(user, item)
     return rank.iteritems()
+
+
+def recommend_implicit(user, n):
+    """
+    用户u对物品i评分的可能性预测
+    :param user: 用户
+    :param n: 为用户推荐n个物品
+    :return: 推荐列表
+    """
+    rank = {}
+    ru = _user_items[user]
+    for item in _movie_set:
+        if item in ru:
+            continue
+        rank[item] = __predict(user, item)
+    return heapq.nlargest(n, rank.iteritems(), key=operator.itemgetter(1))

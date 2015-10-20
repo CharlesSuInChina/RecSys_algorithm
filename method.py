@@ -6,26 +6,26 @@ from __future__ import division
 import math
 import random
 
-import ItemCF
-import LFM
-import SlopeOne
-import UserCF
+import item_cf
+import lfm
+import slope_one
+import user_cf
 
 
-def generate_data_100k(k):
+def generate_data_100k_implicit(k):
     """
     :param k: 数据集编号
     """
     global train, test
     train = {}
     test = {}
-    for line in open("ml-100k/u%s.base" % k, "rU"):
-        user, item, rating, _ = line.split('\t')
+    for row in open("ml-100k/u%s.base" % k, "rU"):
+        user, item, rating, _ = row.split('\t')
         user, item, rating = int(user), int(item), int(rating)
         train.setdefault(user, {})
         train[user][item] = 1
-    for line in open("ml-100k/u%s.test" % k, "rU"):
-        user, item, rating, _ = line.split('\t')
+    for row in open("ml-100k/u%s.test" % k, "rU"):
+        user, item, rating, _ = row.split('\t')
         user, item, rating = int(user), int(item), int(rating)
         test.setdefault(user, {})
         test[user][item] = 1
@@ -35,26 +35,26 @@ def generate_data_100k(k):
     _item_k = 10
 
 
-def generate_data_100k_with_rating(k):
+def generate_data_100k_explicit(k):
     """
     :param k: 数据集编号
     """
     global train, test
     train = {}
     test = {}
-    for line in open("ml-100k/u%s.base" % k, "rU"):
-        user, item, rating, _ = line.split('\t')
+    for row in open("ml-100k/u%s.base" % k, "rU"):
+        user, item, rating, _ = row.split('\t')
         user, item, rating = int(user), int(item), int(rating)
         train.setdefault(user, {})
         train[user][item] = rating
-    for line in open("ml-100k/u%s.test" % k, "rU"):
-        user, item, rating, _ = line.split('\t')
+    for row in open("ml-100k/u%s.test" % k, "rU"):
+        user, item, rating, _ = row.split('\t')
         user, item, rating = int(user), int(item), int(rating)
         test.setdefault(user, {})
         test[user][item] = rating
 
 
-def generate_data_1m(m, k, seed=0):
+def generate_data_1m_implicit(m, k, seed=0):
     """
     将用户行为数据集按照均匀分布随机分成m份
     挑选1份作为测试集
@@ -67,8 +67,8 @@ def generate_data_1m(m, k, seed=0):
     global train, test
     train = {}
     test = {}
-    for line in open("ml-1m/ratings.dat", "rU"):
-        user, item, rating, _ = line.split('::')
+    for row in open("ml-1m/ratings.dat", "rU"):
+        user, item, rating, _ = row.split('::')
         user, item, rating = int(user), int(item), int(rating)
         if random.randint(0, m) == k:
             test.setdefault(user, {})
@@ -82,7 +82,7 @@ def generate_data_1m(m, k, seed=0):
     _item_k = 10
 
 
-def generate_data_1m_with_rating(m, k, seed=0):
+def generate_data_1m_explicit(m, k, seed=0):
     """
     将用户行为数据集按照均匀分布随机分成m份
     挑选1份作为测试集
@@ -95,8 +95,8 @@ def generate_data_1m_with_rating(m, k, seed=0):
     global train, test
     train = {}
     test = {}
-    for line in open("ml-1m/ratings.dat", "rU"):
-        user, item, rating, _ = line.split('::')
+    for row in open("ml-1m/ratings.dat", "rU"):
+        user, item, rating, _ = row.split('::')
         user, item, rating = int(user), int(item), int(rating)
         if random.randint(0, m) == k:
             test.setdefault(user, {})
@@ -106,51 +106,107 @@ def generate_data_1m_with_rating(m, k, seed=0):
             train[user][item] = rating
 
 
-def generate_matrix(with_rating=True):
+def generate_data_latest_small_implicit(m, k, seed=0):
     """
-    :param with_rating: 训练集是否包括rating，True则rating范围为1~5，否则为0或1（只对部分算法有效）
+    将用户行为数据集按照均匀分布随机分成m份
+    挑选1份作为测试集
+    将剩下的m-1份作为训练集
+    :param m: 分割的份数
+    :param k: 随机参数，0≤k<M
+    :param seed: 随机seed
     """
-    # UserCF.user_similarity_cosine(train, iif=False)  # with/without rating
-    # UserCF.user_similarity_cosine(train, iif=True)  # with/without rating
-    # UserCF.user_similarity_jaccard(train, iif=False)  # with/without rating
-    # UserCF.user_similarity_jaccard(train, iif=True)  # with/without rating
-    # UserCF.user_similarity_pearson(train, iif=False)  # with rating
-    # UserCF.user_similarity_pearson(train, iif=True)  # with rating
-    # UserCF.user_similarity_adjusted_cosine(train, iif=False)  # with rating
-    # UserCF.user_similarity_adjusted_cosine(train, iif=True)  # with rating
-    # UserCF.user_similarity_log_likelihood(train)  # without rating
-    ItemCF.item_similarity_cosine(train, norm=False, iuf=False, with_rating=with_rating)  # with/without rating
-    # ItemCF.item_similarity_cosine(train, norm=True, iuf=False, with_rating=with_rating)  # with/without rating
-    # ItemCF.item_similarity_cosine(train, norm=False, iuf=True, with_rating=with_rating)  # with/without rating
-    # ItemCF.item_similarity_jaccard(train, norm=False, iuf=False, with_rating=with_rating)  # with/without rating
-    # ItemCF.item_similarity_jaccard(train, norm=True, iuf=False, with_rating=with_rating)  # with/without rating
-    # ItemCF.item_similarity_jaccard(train, norm=False, iuf=True, with_rating=with_rating)  # with/without rating
-    # ItemCF.item_similarity_adjusted_cosine(train, iuf=False)  # with rating
-    # ItemCF.item_similarity_adjusted_cosine(train, iuf=True)  # with rating
-    # ItemCF.item_similarity__log_likelihood(train, norm=False)  # without rating
-    # ItemCF.item_similarity__log_likelihood(train, norm=True)  # without rating
-    # SlopeOne.item_deviation(train)  # with rating
-    # LFM.factorization(train, bias=True, svd=False, svd_pp=False, steps=50)  # with rating
-    # LFM.factorization(train, bias=False, svd=True, svd_pp=False, steps=50)  # with rating
-    # LFM.factorization(train, bias=True, svd=True, svd_pp=False, steps=25)  # with rating
-    # LFM.factorization(train, bias=True, svd=True, svd_pp=True, steps=10, gamma=0.03)  # with rating
-    # LFM.factorization(train, bias=True, svd=True, svd_pp=False, steps=25, gamma=0.02, slow_rate=0.9, Lambda=0.01,
-    #                   ratio=7)  # without rating
-    # LFM.factorization(train, bias=True, svd=True, svd_pp=True, steps=50, gamma=0.06, slow_rate=0.95, Lambda=0.01,
-    #                   ratio=7)  # without rating
+    random.seed(seed)
+    global train, test
+    train = {}
+    test = {}
+    import csv
+    for row in csv.DictReader(open("ml-latest-small/ratings.csv", "rU")):
+        user, item, rating = int(row["userId"]), int(row["movieId"]), float(row["rating"])
+        if random.randint(0, m) == k:
+            test.setdefault(user, {})
+            test[user][item] = 1
+        else:
+            train.setdefault(user, {})
+            train[user][item] = 1
+    global _n, _user_k, _item_k
+    _n = 10
+    _user_k = 40
+    _item_k = 10
 
 
-def get_recommendation(user):
-    # return UserCF.recommend(user, train, _n, _user_k)
-    return ItemCF.recommend(user, train, _n, _item_k)
-    # return LFM.recommend(user, train, _n)
+def generate_data_latest_small_explicit(m, k, seed=0):
+    """
+    将用户行为数据集按照均匀分布随机分成m份
+    挑选1份作为测试集
+    将剩下的m-1份作为训练集
+    :param m: 分割的份数
+    :param k: 随机参数，0≤k<M
+    :param seed: 随机seed
+    """
+    random.seed(seed)
+    global train, test
+    train = {}
+    test = {}
+    import csv
+    for row in csv.DictReader(open("ml-latest-small/ratings.csv", "rU")):
+        user, item, rating = int(row["userId"]), int(row["movieId"]), float(row["rating"])
+        if random.randint(0, m) == k:
+            test.setdefault(user, {})
+            test[user][item] = rating
+        else:
+            train.setdefault(user, {})
+            train[user][item] = rating
 
 
-def get_recommendation_with_rating(user):
-    # return UserCF.recommend_with_rating(user, train)
-    return ItemCF.recommend_with_rating(user, train)
-    # return SlopeOne.recommend_with_rating(user, train)
-    # return LFM.recommend_with_rating(user, train)
+def generate_matrix(implicit):
+    """
+    :param implicit: 训练集类型
+    """
+    user_cf.user_similarity_cosine(train, iif=False, implicit=implicit)
+    # user_cf.user_similarity_cosine(train, iif=True, implicit=implicit)
+    # user_cf.user_similarity_jaccard(train, iif=False, implicit=implicit)
+    # user_cf.user_similarity_jaccard(train, iif=True, implicit=implicit)
+    # user_cf.user_similarity_pearson(train, iif=False, implicit=False)
+    # user_cf.user_similarity_pearson(train, iif=True, implicit=False)
+    # user_cf.user_similarity_adjusted_cosine(train, iif=False, implicit=False)
+    # user_cf.user_similarity_adjusted_cosine(train, iif=True, implicit=False)
+    # user_cf.user_similarity_log_likelihood(train, implicit=True)
+    # item_cf.item_similarity_cosine(train, norm=False, iuf=False, implicit=implicit)
+    # item_cf.item_similarity_cosine(train, norm=True, iuf=False, implicit=implicit)
+    # item_cf.item_similarity_cosine(train, norm=False, iuf=True, implicit=implicit)
+    # item_cf.item_similarity_jaccard(train, norm=False, iuf=False, implicit=implicit)
+    # item_cf.item_similarity_jaccard(train, norm=True, iuf=False, implicit=implicit)
+    # item_cf.item_similarity_jaccard(train, norm=False, iuf=True, implicit=implicit)
+    # item_cf.item_similarity_pearson(train, norm=False, iuf=False, implicit=False)
+    # item_cf.item_similarity_pearson(train, norm=True, iuf=False, implicit=False)
+    # item_cf.item_similarity_pearson(train, norm=False, iuf=True, implicit=False)
+    # item_cf.item_similarity_adjusted_cosine(train, norm=False, iuf=False, implicit=False)
+    # item_cf.item_similarity_adjusted_cosine(train, norm=True, iuf=False, implicit=False)
+    # item_cf.item_similarity_adjusted_cosine(train, norm=False, iuf=True, implicit=False)
+    # item_cf.item_similarity_log_likelihood(train, norm=False, implicit=True)
+    # item_cf.item_similarity_log_likelihood(train, norm=True, implicit=True)
+    # slope_one.item_deviation(train, implicit=False)
+    # lfm.factorization(train, bias=True, svd=False, svd_pp=False, steps=50)  # explicit
+    # lfm.factorization(train, bias=False, svd=True, svd_pp=False, steps=50)  # explicit
+    # lfm.factorization(train, bias=True, svd=True, svd_pp=False, steps=25)  # explicit
+    # lfm.factorization(train, bias=True, svd=True, svd_pp=True, steps=10, gamma=0.03)  # explicit
+    # lfm.factorization(train, bias=True, svd=True, svd_pp=False, steps=25, gamma=0.02, slow_rate=0.9, Lambda=0.01,
+    #                   ratio=7)  # implicit
+    # lfm.factorization(train, bias=True, svd=True, svd_pp=True, steps=50, gamma=0.06, slow_rate=0.95, Lambda=0.01,
+    #                   ratio=7)  # implicit
+
+
+def get_recommendation_explicit(user):
+    return user_cf.recommend_explicit(user)
+    # return item_cf.recommend_explicit(user)
+    # return slope_one.recommend_explicit(user)
+    # return lfm.recommend_explicit(user)
+
+
+def get_recommendation_implicit(user):
+    return user_cf.recommend_implicit(user, _n, _user_k)
+    # return item_cf.recommend_implicit(user, _n, _item_k)
+    # return lfm.recommend_implicit(user, _n)
 
 
 """
@@ -169,7 +225,7 @@ def recall():
     count = 0
     for user in train.iterkeys():
         tu = test.get(user, {})
-        rank = get_recommendation(user)
+        rank = get_recommendation_implicit(user)
         for item, pui in rank:
             if item in tu:
                 hit += 1
@@ -187,7 +243,7 @@ def precision():
     count = 0
     for user in train.iterkeys():
         tu = test.get(user, {})
-        rank = get_recommendation(user)
+        rank = get_recommendation_implicit(user)
         for item, pui in rank:
             if item in tu:
                 hit += 1
@@ -207,7 +263,7 @@ def coverage():
     for user in train.iterkeys():
         for item in train[user].iterkeys():
             all_items.add(item)
-        rank = get_recommendation(user)
+        rank = get_recommendation_implicit(user)
         for item, pui in rank:
             recommend_items.add(item)
     return len(recommend_items) / len(all_items)
@@ -228,7 +284,7 @@ def popularity():
     popularity_sum = 0
     count = 0
     for user in train.iterkeys():
-        rank = get_recommendation(user)
+        rank = get_recommendation_implicit(user)
         for item, pui in rank:
             popularity_sum += math.log(1 + item_popularity[item])
         count += len(rank)
@@ -243,7 +299,7 @@ def RMSE():
     hit = 0
     for user in train.iterkeys():
         tu = test.get(user, {})
-        rank = get_recommendation(user)
+        rank = get_recommendation_implicit(user)
         for item, pui in rank:
             if item in tu:
                 rmse_sum += (tu[item] - pui) ** 2
@@ -259,7 +315,7 @@ def MAE():
     hit = 0
     for user in train.iterkeys():
         tu = test.get(user, {})
-        rank = get_recommendation(user)
+        rank = get_recommendation_implicit(user)
         for item, pui in rank:
             if item in tu:
                 mae_sum += abs(tu[item] - pui)
@@ -285,7 +341,24 @@ def MAE():
 #     return map_sum / len(train)
 
 
-def evaluate():
+def evaluate_explicit():
+    hit = 0
+    rmse_sum = 0
+    mae_sum = 0
+    for user in train.iterkeys():
+        tu = test.get(user, {})
+        rank = get_recommendation_explicit(user)
+        for item, pui in rank:
+            if item in tu:
+                hit += 1
+                rmse_sum += (tu[item] - pui) ** 2
+                mae_sum += abs(tu[item] - pui)
+    rmse_value = math.sqrt(rmse_sum / hit)
+    mae_value = mae_sum / hit
+    return rmse_value, mae_value
+
+
+def evaluate_implicit():
     item_popularity = {}
     for items in train.itervalues():
         for item in items.iterkeys():
@@ -299,7 +372,7 @@ def evaluate():
     popularity_sum = 0
     for user in train.iterkeys():
         tu = test.get(user, {})
-        rank = get_recommendation(user)
+        rank = get_recommendation_implicit(user)
         for item, pui in rank:
             if item in tu:
                 hit += 1
@@ -314,20 +387,3 @@ def evaluate():
     coverage_value = len(recommend_items) / len(all_items)
     popularity_value = popularity_sum / recommend_count
     return recall_value, precision_value, coverage_value, popularity_value
-
-
-def evaluate_with_rating():
-    hit = 0
-    rmse_sum = 0
-    mae_sum = 0
-    for user in train.iterkeys():
-        tu = test.get(user, {})
-        rank = get_recommendation_with_rating(user)
-        for item, pui in rank:
-            if item in tu:
-                hit += 1
-                rmse_sum += (tu[item] - pui) ** 2
-                mae_sum += abs(tu[item] - pui)
-    rmse_value = math.sqrt(rmse_sum / hit)
-    mae_value = mae_sum / hit
-    return rmse_value, mae_value
